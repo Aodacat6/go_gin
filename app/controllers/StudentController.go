@@ -45,6 +45,16 @@ func UpdateStudent() gin.HandlerFunc {
 		student := new(models.Student)
 		//绑定变量到自定义
 		context.ShouldBind(&student)
+		service.UpdateStudent(student)
+	}
+}
 
+func DeleteStudent() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		//定义接收
+		student := new(models.Student)
+		//绑定变量到自定义
+		context.ShouldBind(&student)
+		service.DeleteStudent(student)
 	}
 }

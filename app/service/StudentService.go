@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go_gin/conf"
 	"go_gin/models"
+	"log"
 )
 
 // p批量保存
@@ -31,10 +32,51 @@ func SaveBatch(students []models.Student) {
 
 }
 
-func UpdateStudent(student models.Student) {
+func UpdateStudent(student *models.Student) {
+	defer func() {
+		a := recover()
+		//fmt.Println("recover:  ..  ", a)
+		if a != nil {
+			log.Panicln(a)
+		} else {
+			log.Println("更新成功")
+		}
+	}()
 	//获取数据库链接
 	connection := conf.GetDBConnection()
 	//1、根据id更新
-	connection.ID().Update()
+	/*	update, err := connection.ID(10).Update(student)
+		if err != nil {
+			panic(errors.New("更新操作错误" + err.Error()))
+			return
+		}
+		fmt.Printf("更新成功，更新数据量为：%d \n", update)*/
 
+	//2、直接更新
+	update, err := connection.Where("id = ?", student.Id).Update(student)
+	if err != nil {
+		panic(errors.New("更新操作错误" + err.Error()))
+		return
+	}
+	fmt.Printf("更新成功，更新数据量为：%d \n", update)
+}
+
+func DeleteStudent(student *models.Student) {
+	//获取数据库链接
+	connection := conf.GetDBConnection()
+	//delete(param)  param里是要删除的条件
+	/*	i, err := connection.ID(student.Id).Delete(student)
+		if err != nil {
+			fmt.Println("删除失败： ", err.Error())
+			return
+		}
+		fmt.Println("删除成功： ", i)
+	*/
+	//自定义sql语句
+	exec, err := connection.Exec("delete from student where id = ?", student.Id)
+	if err != nil {
+		fmt.Println("执行错误： ", err.Error())
+		return
+	}
+	fmt.Println("执行结果：", exec)
 }

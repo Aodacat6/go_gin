@@ -25,5 +25,6 @@ func Router(group *gin.RouterGroup) {
 	studentGroup.GET("/get")
 	studentGroup.POST("/save", controllers.Save())
 	studentGroup.PUT("/edit", controllers.UpdateStudent())
+	studentGroup.DELETE("/delete", controllers.DeleteStudent())
 
 }
