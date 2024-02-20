@@ -64,6 +64,23 @@ func UpdateStudent(student *models.Student) {
 func DeleteStudent(student *models.Student) {
 	//获取数据库链接
 	connection := conf.GetDBConnection()
+	session := connection.NewSession()
+	//开启事务
+	session.Begin()
+	//异常处理
+	defer func() {
+		err1 := recover()
+		if err1 != nil {
+			fmt.Println("执行回滚")
+			session.Rollback()
+		} else {
+			//提交事务
+			fmt.Println("执行提交")
+			session.Commit()
+		}
+		//必须要关闭，否则回滚不生效
+		session.Close()
+	}()
 	//delete(param)  param里是要删除的条件
 	/*	i, err := connection.ID(student.Id).Delete(student)
 		if err != nil {
@@ -73,10 +90,76 @@ func DeleteStudent(student *models.Student) {
 		fmt.Println("删除成功： ", i)
 	*/
 	//自定义sql语句
-	exec, err := connection.Exec("delete from student where id = ?", student.Id)
+	exec, err := session.Exec("delete from student where id = ?", student.Id)
 	if err != nil {
 		fmt.Println("执行错误： ", err.Error())
 		return
 	}
+	panic("error")
+
 	fmt.Println("执行结果：", exec)
+}
+
+func GetOneStudentById(id int) models.Student {
+	//获取数据库链接
+	/*	connection := conf.GetDBConnection()
+		quote, err := connection.QueryString("select * from student where id = ?", id)
+		if err != nil {
+			fmt.Println("查询报错：", err.Error())
+			panic(err)
+		}
+		var jsonstr []byte
+		for i := 0; i < len(quote); i++ {
+			jsonstr, _ = json.Marshal(quote[i])
+			fmt.Printf("index ： %d , 查到了：%s \n", i, jsonstr)
+		}
+		//todo 先看看返回数据的结构
+		student := new(models.Student)
+		json.Unmarshal(jsonstr, student)
+		return *student*/
+	/*
+		connection := conf.GetDBConnection()
+		quote, err := connection.QueryInterface("select * from student where id = ?", id)
+		if err != nil {
+			fmt.Println("查询报错：", err.Error())
+			panic(err)
+		}
+		//var jsonstr []byte
+		student := new(models.Student)
+		for i := 0; i < len(quote); i++ {
+			m := quote[i]
+			student.Id = int(m["id"].(int32))
+			student.Name = m["name"].(string)
+			student.Age = int(m["age"].(int32))
+			student.Address = m["address"].(string)
+			fmt.Printf("index ： %d , 查到了：%s \n", i, student)
+		}
+		//todo 先看看返回数据的结构
+		//student := new(models.Student)
+		//json.Unmarshal(jsonstr, student)
+		return *student*/
+
+	connection := conf.GetDBConnection()
+	m := models.Student{Name: "damiao"}
+	//如果有多条记录，也只会返回一条
+	get, _ := connection.Where("id = ?", id).Get(&m)
+	if get == true {
+
+		return m
+	}
+	fmt.Println("没有找到")
+	return *new(models.Student)
+}
+
+func ListStudent() []models.Student {
+	connection := conf.GetDBConnection()
+	var students []models.Student
+	//list
+	//err := connection.Cols("name").Distinct("name").Limit(1, 1).Find(&students)
+	err := connection.Limit(10).Find(&students)
+	if err != nil {
+		panic(err)
+	}
+
+	return students
 }

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -35,6 +36,19 @@ func GetAndRtn() gin.HandlerFunc {
 		}
 		context.JSON(http.StatusOK, gin.H{
 			"id": id,
+		})
+	}
+}
+
+func Login() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		session := sessions.Default(context)
+		if session.Get("auth") == nil || session.Get("auth") == "" {
+			session.Set("auth", "ok")
+			session.Save()
+		}
+		context.JSON(http.StatusOK, gin.H{
+			"msg": "ok",
 		})
 	}
 }

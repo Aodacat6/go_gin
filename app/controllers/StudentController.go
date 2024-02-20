@@ -1,10 +1,13 @@
 package controllers
 
 import (
+	"fmt"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"go_gin/app/service"
 	"go_gin/models"
 	"net/http"
+	"strconv"
 )
 
 // 保存
@@ -51,10 +54,43 @@ func UpdateStudent() gin.HandlerFunc {
 
 func DeleteStudent() gin.HandlerFunc {
 	return func(context *gin.Context) {
+		defer func() {
+			err := recover()
+			if err != nil {
+				context.JSON(http.StatusUnauthorized, gin.H{
+					"msg": err,
+				})
+			}
+		}()
+		session := sessions.Default(context)
+		fmt.Println(session.Get("auth"))
+		if session.Get("auth") == nil || session.Get("auth") == "" || session.Get("auth") != "ok" {
+			panic("请先登录")
+		}
+		value, _ := context.Get("aaa")
+		fmt.Println("接收到中间件传入的变量aaa： ", value)
+		//context.MustGet("")
 		//定义接收
 		student := new(models.Student)
 		//绑定变量到自定义
 		context.ShouldBind(&student)
 		service.DeleteStudent(student)
+	}
+}
+
+func GetOneStudentById() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		id, _ := context.GetQuery("id")
+		atoi, _ := strconv.Atoi(id)
+		student := service.GetOneStudentById(atoi)
+		context.JSON(http.StatusOK, student)
+	}
+}
+
+func ListStudent() gin.HandlerFunc {
+	return func(context *gin.Context) {
+
+		students := service.ListStudent()
+		context.JSON(http.StatusOK, students)
 	}
 }

@@ -12,6 +12,10 @@ func Router(group *gin.RouterGroup) {
 		e := recover()
 		fmt.Println(e)
 	}()
+	//登录页
+	loginGroup := group.Group("auth")
+	loginGroup.GET("/login", controllers.Login())
+
 	//user 页面
 	//user := router.Group("/user")
 	userGroup := group.Group("user")
@@ -22,7 +26,8 @@ func Router(group *gin.RouterGroup) {
 	//student 页面
 	studentGroup := group.Group("student")
 	//student := router.Group("/student")
-	studentGroup.GET("/get")
+	studentGroup.GET("/getone", controllers.GetOneStudentById())
+	studentGroup.GET("/list", controllers.ListStudent())
 	studentGroup.POST("/save", controllers.Save())
 	studentGroup.PUT("/edit", controllers.UpdateStudent())
 	studentGroup.DELETE("/delete", controllers.DeleteStudent())
